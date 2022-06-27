@@ -1,45 +1,65 @@
-import { Injectable } from "@angular/core";
-import { Course } from "./course";
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const app = express();
 
-@Injectable({
-  providedIn: 'root'
-})
-export class CourseService {
+var currentUser;
 
-  private coursesUrl: string = 'http://localhost:3100/api/courses'
-
-  constructor(private HttpClient: HttpClient) { }
-
-  retrieveAll(): Observable<Course[]> {
-    return this.HttpClient.get<Course[]>(this.coursesUrl);
-  }
-
-  retrieveById(id: number): Observable<Course> {
-    return this.HttpClient.get<Course>(`${this.coursesUrl}/${id}`);
-  }
-
-  save(course: Course): Observable<Course> {
-    if (course.id) {
-      return this.HttpClient.put<Course>(`${this.coursesUrl}/${course.id}`, course);
-    } else {
-      return this.HttpClient.post<Course>(`${this.coursesUrl}`, course);
-    }
-  }
-
-  deleteById(id: number): Observable<any> {
-    return this.HttpClient.delete<any>(`${this.coursesUrl}/${id}`);
-  }
+var corsOptions = {
+  orgim: '/',
+  optionsSuccessStatus: 200
 }
 
+app.use(cors(corsOptions));
+app.use(bodyParser.json());
 
+app.listen(3100, () => {
+  console.log('Server Started!');
+});
 
-var COURSES: Course[] = [
+app.route('/api/courses').get((request, response) => {
+  response.send(COURSES);
+});
+
+app.route('/api/courses').post((request, response) => {
+  let course = request.body;
+
+  const firstId = COURSES ? Math.max.apply(null, COURSES.map(courseIterator => courseIterator.id)) + 1 : 1;
+  course.id = firstId;
+  COURSES.push(course);
+  
+
+  response.status(201).send(course);
+});
+
+app.route('/api/courses/:id').put((request, response) => {
+  const courseId = +request.params['id'];
+  const course = request.body;
+
+  const index = COURSES.findIndex(courseIterator => courseIterator.id === courseId);
+  COURSES[index] = course;
+
+  response.status(200).send(course);
+});
+
+app.route('/api/courses/:id').get((request, response) => {
+  const courseId = +request.params['id'];
+
+  response.status(200).send(COURSES.find(courseIterator => courseIterator.id === courseId));
+});
+
+app.route('/api/courses/:id').delete((request, response)=> {
+  const courseId = +request.params['id'];
+  COURSES = COURSES.filter(courseIterator => courseIterator.id !== courseId);
+  
+  response.status(204).send({});
+});
+
+var COURSES = [
     {
         id: 1,
         name: 'Angular: CLI',
-        releaseDate: 'June 2, 2022',
+        releaseDate: 'November 2, 2019',
         description: 'Neste curso, os alunos irão obter um grande conhecimento nos principais recursos do CLI.',
         duration: 120,
         code: 'XLF-1212',
@@ -50,7 +70,7 @@ var COURSES: Course[] = [
     {
         id: 2,
         name: 'Angular: Forms',
-        releaseDate: 'June 4, 2022',
+        releaseDate: 'November 4, 2019',
         description: 'Neste curso, os alunos irão obter um conhecimento aprofundado sobre os recursos disponíveis no módulo de Forms.',
         duration: 80,
         code: 'DWQ-3412',
@@ -61,7 +81,7 @@ var COURSES: Course[] = [
     {
         id: 3,
         name: 'Angular: HTTP',
-        releaseDate: 'June 8, 2022',
+        releaseDate: 'November 8, 2019',
         description: 'Neste curso, os alunos irão obter um conhecimento aprofundado sobre os recursos disponíveis no módulo de HTTP.',
         duration: 80,
         code: 'QPL-0913',
@@ -72,7 +92,7 @@ var COURSES: Course[] = [
     {
         id: 4,
         name: 'Angular: Router',
-        releaseDate: 'June 16, 2022',
+        releaseDate: 'November 16, 2019',
         description: 'Neste curso, os alunos irão obter um conhecimento aprofundado sobre os recursos disponíveis no módulo de Router.',
         duration: 80,
         code: 'OHP-1095',
@@ -83,7 +103,7 @@ var COURSES: Course[] = [
     {
         id: 5,
         name: 'Angular: Animations',
-        releaseDate: 'June 25, 2022',
+        releaseDate: 'November 25, 2019',
         description: 'Neste curso, os alunos irão obter um conhecimento aprofundado sobre os recursos disponíveis sobre Animation.',
         duration: 80,
         code: 'PWY-9381',
@@ -92,11 +112,3 @@ var COURSES: Course[] = [
         imageUrl: '/assets/images/animations.png',
     }
 ];
-function deleteBayId(id: any, number: any) {
-  throw new Error("Function not implemented.");
-}
-
-function id(id: any, number: any) {
-  throw new Error("Function not implemented.");
-}
-
